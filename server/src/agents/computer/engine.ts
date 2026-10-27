@@ -2369,7 +2369,7 @@ class CodexAdapter implements EngineAdapter {
     const { command, shell, argsPrefix } = resolveCodexSpawn()
     assertCodexProviderTransport(provider.args, shell)
     const exec = allowUnsandboxedByoa() ? ['exec'] : codexSecureExecArgs({ home: args.cwd, env }, true)
-    return spawnCapture(command, [...argsPrefix, ...provider.args, ...exec, '--ephemeral', ...flags, ...CODEX_RUNTIME_CONFIG_ARGS, ...codexServiceTierArgs(false), '-'], {
+    return spawnCapture(command, [...argsPrefix, ...exec, ...provider.args, '--ephemeral', ...flags, ...CODEX_RUNTIME_CONFIG_ARGS, ...codexServiceTierArgs(false), '-'], {
       cwd: args.cwd, env, signal: args.signal, onLog: args.onLog, shell, stdinText: args.prompt,
     })
   }
@@ -2501,7 +2501,7 @@ class CodexAdapter implements EngineAdapter {
     let usage: EngineUsage | undefined
     let turnError: string | undefined
     const started = Date.now()
-    return spawnEngine(command, [...argsPrefix, ...provider.args, ...base, ...model, ...CODEX_RUNTIME_CONFIG_ARGS, ...codexServiceTierArgs(args.nativeFastMode ?? false), ...resume, '-'], args, {
+    return spawnEngine(command, [...argsPrefix, ...base, ...provider.args, ...model, ...CODEX_RUNTIME_CONFIG_ARGS, ...codexServiceTierArgs(args.nativeFastMode ?? false), ...resume, '-'], args, {
       shell, stdinText: args.prompt,
       onStdoutLine(line) {
         let event

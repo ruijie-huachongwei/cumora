@@ -324,6 +324,7 @@ test('provider bootstrap reaches secure exec, triage, doctor and catalog without
   const adapter = getAdapter('codex')
   const signal = AbortSignal.timeout(10_000)
   assert.equal((await adapter.run({ home: root, env, prompt: 'hello', onLog() {}, signal })).exitCode, 0)
+  assert.equal((await adapter.run({ home: root, env, prompt: 'hello again', resumeSessionId: 'fixture-thread', onLog() {}, signal })).exitCode, 0)
   await adapter.classify({ cwd: root, env, prompt: 'triage', signal })
   await adapter.probe({ cwd: root, env, tier: 'small', signal })
   const catalog = await discoverEngineModelCatalog('codex', join(bin, IS_WIN ? 'codex.cmd' : 'codex'), true, env)
@@ -331,9 +332,13 @@ test('provider bootstrap reaches secure exec, triage, doctor and catalog without
   assert.equal(catalog.defaultFastModel, null)
   assert.doesNotMatch(JSON.stringify(catalog), /fixture-provider-secret|127\.0\.0\.1/)
   const records = (await calls()).filter(call => call.argv?.includes('exec'))
-  assert.equal(records.length, 3)
+  assert.equal(records.length, 4)
+  assert.deepEqual(records.filter(call => call.argv.includes('resume')).map(call =>
+    call.argv[call.argv.indexOf('resume') + 1]), ['fixture-thread'])
   for (const call of records) {
     assert.ok(call.argv.includes('model_provider="fixture"'))
+    assert.ok(call.argv.indexOf('model_provider="fixture"') > call.argv.indexOf('exec'),
+      'provider overrides must reach the exec subcommand when user configuration is ignored')
     assert.ok(call.argv.includes('model="auto/main"'))
     assert.ok(call.argv.includes('--ignore-user-config'))
     assert.equal(call.argv.includes('gpt-5.4-mini'), false)
